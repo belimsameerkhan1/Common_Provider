@@ -12,7 +12,6 @@ interface SidebarProps {
 export const Sidebar: React.FC<SidebarProps> = ({
   currentTab,
   onTabChange,
-  health,
   healthError,
 }) => {
   return (
@@ -49,7 +48,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </button>
 
           <a
-            href={health?.docs_url || 'http://127.0.0.1:8000/docs'}
+            href="https://common-provider.onrender.com/docs"
             target="_blank"
             rel="noopener noreferrer"
             className="nav-item"
