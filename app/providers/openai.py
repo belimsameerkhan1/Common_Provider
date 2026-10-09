@@ -54,7 +54,28 @@ class OpenAIDiscoverer(BaseDiscoverer):
         if provider.models and len(provider.models) > 0:
             return provider.models
 
-        # Check for API key in environment
+        # Check if paid API integration is explicitly enabled via environment variable
+        paid_enabled = os.getenv("ENABLE_PAID_OPENAI", "false").lower() in ("true", "1", "yes")
+
+        # By default, operate without paid OpenAI API usage:
+        # Return demo/fallback catalog immediately without making any external HTTP requests
+        if not paid_enabled:
+            logger.info(
+                f"Paid API integration disabled for provider '{provider.id}'. "
+                "Returning demo/fallback catalog without external HTTP requests."
+            )
+            return [
+                Model(
+                    id=m.id,
+                    name=m.name,
+                    provider=provider.id,
+                    context_window=m.context_window,
+                    capabilities=m.capabilities,
+                )
+                for m in DEFAULT_OPENAI_MODELS
+            ]
+
+        # Check for API key in environment (only when paid integration is explicitly enabled)
         api_key = os.getenv(provider.env_key) if provider.env_key else None
 
         # If API key is present, attempt live API discovery

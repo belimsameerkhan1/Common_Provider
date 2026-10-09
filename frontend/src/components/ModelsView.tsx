@@ -89,16 +89,10 @@ export const ModelsView: React.FC<ModelsViewProps> = ({
       };
     }
 
-    if (activeProvider.protocol === 'openai') {
-      if (!activeProvider.env_key) {
-        return {
-          type: 'info',
-          text: 'Fallback Catalog: No environment key configured on this provider. Live discovery requires an API key; showing default catalog.',
-        };
-      }
+    if (activeProvider.id === 'openai' || activeProvider.protocol === 'openai') {
       return {
         type: 'info',
-        text: `Live Wire Discovery: Queries ${activeProvider.base_url}/models using $${activeProvider.env_key}. If external API is unreachable or key invalid, default models are served.`,
+        text: 'Demo Catalog: Operating without paid OpenAI API usage. Serving pre-configured demo catalog models without making external API requests.',
       };
     }
 
@@ -267,6 +261,8 @@ export const ModelsView: React.FC<ModelsViewProps> = ({
                     <td>
                       {activeProvider.protocol === 'static' ? (
                         <span className="badge badge-muted">Config Catalog</span>
+                      ) : activeProvider.id === 'openai' ? (
+                        <span className="badge badge-muted">Demo Catalog</span>
                       ) : isDefaultFallback ? (
                         <span className="badge badge-muted">Fallback Catalog</span>
                       ) : (

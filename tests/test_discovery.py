@@ -33,9 +33,43 @@ def test_openai_discoverer_fallback():
     asyncio.run(run_test())
 
 
+def test_openai_discoverer_no_external_request_when_paid_disabled(monkeypatch):
+    """
+    Verify that OpenAI discovery makes NO external HTTP requests when
+    paid API integration is disabled (the default setting), even if an API key is present.
+    """
+    async def run_test():
+        discoverer = OpenAIDiscoverer()
+        monkeypatch.delenv("ENABLE_PAID_OPENAI", raising=False)
+        monkeypatch.setenv("TEST_OPENAI_KEY", "sk-mock-key")
+
+        class ShouldNotBeCalledClient:
+            def __init__(self, *args, **kwargs):
+                raise AssertionError("External HTTP request was attempted while paid API was disabled!")
+
+        monkeypatch.setattr(httpx, "AsyncClient", ShouldNotBeCalledClient)
+
+        provider = Provider(
+            id="openai",
+            name="OpenAI",
+            base_url="https://api.openai.com/v1",
+            env_key="TEST_OPENAI_KEY",
+            protocol="openai",
+        )
+
+        models = await discoverer.discover(provider)
+        assert len(models) > 0
+        model_ids = [m.id for m in models]
+        assert "gpt-4o" in model_ids
+        assert "gpt-4o-mini" in model_ids
+
+    asyncio.run(run_test())
+
+
 def test_openai_discoverer_mock_api(monkeypatch):
     async def run_test():
         discoverer = OpenAIDiscoverer()
+        monkeypatch.setenv("ENABLE_PAID_OPENAI", "true")
         monkeypatch.setenv("TEST_OPENAI_KEY", "sk-mock-key")
 
         mock_response_data = {
